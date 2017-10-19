@@ -27,7 +27,7 @@ formatTime(timestamp){
         var formattedTime=this.formatTime(message.timeStamp);
         return (
             <div className="message">
-              <strong>{message.text}</strong> {formattedTime}
+              <strong>{message.user}</strong> {message.text} - {formattedTime}
             </div>
         )
     }

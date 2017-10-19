@@ -19835,11 +19835,28 @@
 	    }
 
 	    _createClass(App, [{
+	        key: 'setUser',
+	        value: function setUser(user) {
+	            this.setState({ user: user });
+	        }
+	    }, {
 	        key: 'componentWillMount',
 	        value: function componentWillMount() {
 	            this.socket = (0, _socketIoClient2['default'])('http://localhost:3000');
 	            this.socket.on('connect', this.connect.bind(this));
 	            this.socket.on('messageAdded', this.onMessageAdded.bind(this));
+	            this.socket.on('userJoined', this.onUserJoined.bind(this));
+	            this.socket.on('disconnect', this.disconnect);
+	        }
+	    }, {
+	        key: 'disconnect',
+	        value: function disconnect(users) {
+	            this.setState({ users: users });
+	        }
+	    }, {
+	        key: 'onUserJoined',
+	        value: function onUserJoined(users) {
+	            this.setState({ users: users });
 	        }
 	    }, {
 	        key: 'emit',
@@ -19866,21 +19883,25 @@
 	        key: 'render',
 	        value: function render() {
 	            console.log(this.state.messages);
-	            return _react2['default'].createElement(
-	                'div',
-	                { className: 'row' },
-	                _react2['default'].createElement(
+	            if (this.state.user == '') {
+	                return _react2['default'].createElement(_UsersUserFormJsx2['default'], { emit: this.emit.bind(this), setUser: this.setUser.bind(this) });
+	            } else {
+	                return _react2['default'].createElement(
 	                    'div',
-	                    { className: 'col-md-4' },
-	                    _react2['default'].createElement(_UsersUserListJsx2['default'], this.state)
-	                ),
-	                _react2['default'].createElement(
-	                    'div',
-	                    { className: 'col-md-8' },
-	                    _react2['default'].createElement(_MessagesMessageListJsx2['default'], this.state),
-	                    _react2['default'].createElement(_MessagesMessageFormJsx2['default'], _extends({ emit: this.emit.bind(this) }, this.state))
-	                )
-	            );
+	                    { className: 'row' },
+	                    _react2['default'].createElement(
+	                        'div',
+	                        { className: 'col-md-4' },
+	                        _react2['default'].createElement(_UsersUserListJsx2['default'], this.state)
+	                    ),
+	                    _react2['default'].createElement(
+	                        'div',
+	                        { className: 'col-md-8' },
+	                        _react2['default'].createElement(_MessagesMessageListJsx2['default'], this.state),
+	                        _react2['default'].createElement(_MessagesMessageFormJsx2['default'], _extends({ emit: this.emit.bind(this) }, this.state))
+	                    )
+	                );
+	            }
 	        }
 	    }]);
 
@@ -20023,9 +20044,11 @@
 	                _react2['default'].createElement(
 	                    'strong',
 	                    null,
-	                    message.text
+	                    message.user
 	                ),
 	                ' ',
+	                message.text,
+	                ' - ',
 	                formattedTime
 	            );
 	        }
@@ -20092,6 +20115,7 @@
 	        value: function onSubmit(e) {
 	            e.preventDefault();
 	            this.props.emit('messageAdded', {
+	                user: this.props.user.name,
 	                timeStamp: Date.now(),
 	                text: this.refs.text.value.trim()
 	            });
@@ -20148,7 +20172,24 @@
 	            return _react2['default'].createElement(
 	                'div',
 	                null,
-	                'User list'
+	                _react2['default'].createElement(
+	                    'h3',
+	                    null,
+	                    'Users (',
+	                    this.props.users.length,
+	                    ')'
+	                ),
+	                _react2['default'].createElement(
+	                    'ul',
+	                    { className: 'list-group' },
+	                    this.props.users.map(function (user, i) {
+	                        return _react2['default'].createElement(
+	                            'li',
+	                            { className: 'list-group-item', user: user, key: i },
+	                            user.name
+	                        );
+	                    })
+	                )
 	            );
 	        }
 	    }]);
@@ -20197,12 +20238,30 @@
 	    }
 
 	    _createClass(UserForm, [{
+	        key: 'onSubmit',
+	        value: function onSubmit(e) {
+	            e.preventDefault();
+	            var name = this.refs.name.value.trim();
+	            this.props.setUser({ name: name });
+	            this.props.emit('userJoined', { name: name });
+	            this.refs.name.value = '';
+	        }
+	    }, {
 	        key: 'render',
 	        value: function render() {
 	            return _react2['default'].createElement(
 	                'div',
 	                null,
-	                'User form'
+	                _react2['default'].createElement(
+	                    'h3',
+	                    null,
+	                    'Chat Login'
+	                ),
+	                _react2['default'].createElement(
+	                    'form',
+	                    { onSubmit: this.onSubmit.bind(this) },
+	                    _react2['default'].createElement('input', { type: 'text', className: 'form-control', ref: 'name', placeholder: 'Choose a username' })
+	                )
 	            );
 	        }
 	    }]);
